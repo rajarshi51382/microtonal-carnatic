@@ -85,7 +85,7 @@ For each generated note:
 - Compare pitch deviation distributions with real Carnatic performances.
 - Analyze alignment with expected **Raga microtonal structures**.
 
-**Human Evaluation**
+**Human Evaluation (LATER)**
 - Collect feedback from expert musicians and listeners.
 - Evaluate:
   - **Raga conformity**
