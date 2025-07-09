@@ -110,8 +110,8 @@ For each generated note:
 ```
 microtonal-carnatic/
 ├── data/
-│   ├── audio/                 # Raw recordings
-│   ├── annotations/           # Optional Swara labels
+│   ├── audio/                 
+│   ├── annotations/           
 ├── preprocessing/
 │   └── pitch_extraction.py
 ├── modeling/
