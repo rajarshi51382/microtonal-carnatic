@@ -40,6 +40,10 @@ if __name__ == "__main__":
     # A simple, placeholder transition matrix (should be learned from data)
     # This matrix is uniform, which will produce random sequences.
     # A real implementation should enforce Arohana/Avarohana and other rules.
+
+    """
+    TO-DO: FIND A WAY TO GET A TRANSITION MATRIX LEARNED FROM DATA
+    """
     transition_matrix = np.array([
         [0.1, 0.5, 0.1, 0.1, 0.1, 0.1, 0.0],  # From S
         [0.1, 0.1, 0.5, 0.1, 0.1, 0.1, 0.0],  # From R1
