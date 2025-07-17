@@ -624,7 +624,8 @@ class ShrutiFST(ShrutiModel):
                         if 0 <= intermediate_idx < len(arohana):
                             # This would require sequence expansion
                             # For now, just correct the next note
-                            corrected[i + 1] = arohana[current_idx + 1]
+                            if 0 <= current_idx < len(arohana) - 1:
+                                corrected[i + 1] = arohana[current_idx + 1]
                 except ValueError:
                     # Notes not in arohana, keep as is
                     pass
