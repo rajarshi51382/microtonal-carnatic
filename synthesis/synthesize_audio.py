@@ -123,7 +123,7 @@ def synthesize_swara_sequence(swara_sequence, output_path, duration_per_swara=0.
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Synthesizes a Swara sequence into an audio file.")
-    parser.add_argument("swara_sequence", type=str, help="A space-separated string of Swaras (e.g., 'S R1 G3 M1 P D1 N3 S').")
+    parser.add_argument("swara_sequence", type=str, nargs='+', help="A space-separated string of Swaras (e.g., 'S R1 G3 M1 P D1 N3 S').")
     parser.add_argument("output_path", type=str, help="The path to save the output audio file (e.g., 'output.wav').")
     parser.add_argument("--duration", type=float, default=0.5, help="The duration of each Swara in seconds.")
     parser.add_argument("--gamaka_type", type=str, default="none", choices=['none', 'oscillation', 'glide_up', 'glide_down', 'auto'], help="Type of gamaka to apply.")
@@ -131,6 +131,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    swara_list = args.swara_sequence.split()
+    swara_list = args.swara_sequence
 
     synthesize_swara_sequence(swara_list, args.output_path, args.duration, gamaka_type=args.gamaka_type, gamaka_intensity=args.gamaka_intensity)
