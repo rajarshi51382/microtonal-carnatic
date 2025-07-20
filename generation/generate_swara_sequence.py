@@ -1,73 +1,100 @@
 
 import numpy as np
 import argparse
+import sys
+import os
 
-def generate_swara_sequence(transition_matrix, swaras, length, start_swara=None):
+# Add the project root to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from modeling.shrutisense import RagaGrammar, ShrutiUtils
+
+def generate_swara_sequence(raga_name, length, start_swara=None):
     """
-    Generates a sequence of Swaras using a Markov chain.
+    Generates a sequence of Swaras for a given Raga using its grammar.
 
     Args:
-        transition_matrix (np.ndarray): The transition matrix for the Swaras.
-        swaras (list): The list of Swaras corresponding to the transition matrix.
+        raga_name (str): The name of the Raga to generate the sequence for.
         length (int): The desired length of the Swara sequence.
-        start_swara (str, optional): The starting Swara for the sequence. Defaults to a random Swara.
+        start_swara (str, optional): The starting Swara for the sequence. Defaults to a random Swara from the Raga's arohana.
 
     Returns:
         list: The generated sequence of Swaras.
     """
-    if start_swara is None:
-        current_swara_index = np.random.choice(len(swaras))
-    else:
-        current_swara_index = swaras.index(start_swara)
+    grammar = RagaGrammar(raga_name)
+    
+    # Use the active shrutis from the RagaGrammar for the possible notes
+    # This ensures we only generate notes valid for the given Raga
+    swaras = sorted(list(set(grammar.arohana + grammar.avarohana)), key=lambda x: ShrutiUtils.shruti_to_cents(x))
+    
+    if not swaras:
+        raise ValueError(f"No active Swaras found for Raga: {raga_name}")
 
-    sequence = [swaras[current_swara_index]]
+    if start_swara is None:
+        # Start with Sa or a random note from arohana if Sa is not available
+        if 'Sa' in swaras:
+            current_swara = 'Sa'
+        else:
+            current_swara = np.random.choice(grammar.arohana)
+    else:
+        if start_swara not in swaras:
+            raise ValueError(f"Start Swara '{start_swara}' is not valid for Raga '{raga_name}'.")
+        current_swara = start_swara
+
+    sequence = [current_swara]
 
     for _ in range(length - 1):
-        next_swara_index = np.random.choice(
-            len(swaras),
-            p=transition_matrix[current_swara_index]
-        )
-        sequence.append(swaras[next_swara_index])
-        current_swara_index = next_swara_index
+        possible_next_swaras = []
+        probabilities = []
+
+        # Determine melodic direction for transition
+        # Simple heuristic: if current note is lower than previous, assume ascending intent
+        # This can be made more sophisticated
+        ascending_intent = True
+        if len(sequence) > 1:
+            prev_shruti_cents = ShrutiUtils.shruti_to_cents(sequence[-2])
+            current_shruti_cents = ShrutiUtils.shruti_to_cents(current_swara)
+            if current_shruti_cents < prev_shruti_cents:
+                ascending_intent = False # Actually descending
+
+        for next_swara in swaras:
+            prob = grammar.get_transition_probability(current_swara, next_swara, ascending=ascending_intent)
+            if prob > 0:
+                possible_next_swaras.append(next_swara)
+                probabilities.append(prob)
+        
+        if not possible_next_swaras:
+            # Fallback: if no valid transitions, pick a random note from the raga's scale
+            current_swara = np.random.choice(swaras)
+            sequence.append(current_swara)
+            continue
+
+        # Normalize probabilities
+        probabilities = np.array(probabilities)
+        probabilities = probabilities / probabilities.sum()
+
+        current_swara = np.random.choice(possible_next_swaras, p=probabilities)
+        sequence.append(current_swara)
 
     return sequence
 
 if __name__ == "__main__":
-    # Example for a simple Raga (e.g., Mayamalavagowla)
-    # S R1 G3 M1 P D1 N3 S
-    swaras = ['S', 'R1', 'G3', 'M1', 'P', 'D1', 'N3']
-    
-    # A simple, placeholder transition matrix (should be learned from data)
-    # This matrix is uniform, which will produce random sequences.
-    # A real implementation should enforce Arohana/Avarohana and other rules.
-
-    """
-    TO-DO: FIND A WAY TO GET A TRANSITION MATRIX LEARNED FROM DATA
-    """
-    transition_matrix = np.array([
-        [0.1, 0.5, 0.1, 0.1, 0.1, 0.1, 0.0],  # From S
-        [0.1, 0.1, 0.5, 0.1, 0.1, 0.1, 0.0],  # From R1
-        [0.0, 0.1, 0.1, 0.5, 0.1, 0.1, 0.1],  # From G3
-        [0.1, 0.0, 0.1, 0.1, 0.5, 0.1, 0.1],  # From M1
-        [0.1, 0.1, 0.0, 0.1, 0.1, 0.5, 0.1],  # From P
-        [0.1, 0.1, 0.1, 0.0, 0.1, 0.1, 0.5],  # From D1
-        [0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0]   # From N3
-    ])
-    # Normalize rows to sum to 1
-    transition_matrix = transition_matrix / transition_matrix.sum(axis=1, keepdims=True)
-
     parser = argparse.ArgumentParser(description="Generates a Swara sequence for a given Raga.")
+    parser.add_argument("--raga", type=str, default="Yaman", help="The name of the Raga (e.g., 'Yaman', 'Bhairavi').")
     parser.add_argument("--length", type=int, default=20, help="The length of the Swara sequence to generate.")
-    parser.add_argument("--start_swara", type=str, choices=swaras, help="The starting Swara of the sequence.")
+    parser.add_argument("--start_swara", type=str, help="The starting Swara of the sequence.")
 
     args = parser.parse_args()
 
-    swara_sequence = generate_swara_sequence(
-        transition_matrix,
-        swaras,
-        args.length,
-        args.start_swara
-    )
+    try:
+        swara_sequence = generate_swara_sequence(
+            args.raga,
+            args.length,
+            args.start_swara
+        )
 
-    print("Generated Swara Sequence:")
-    print(" ".join(swara_sequence))
+        print(f"Generated Swara Sequence for Raga {args.raga}:")
+        print(" ".join(swara_sequence))
+    except ValueError as e:
+        print(f"Error: {e}")
+

@@ -1,7 +1,9 @@
+librosa
 numpy
 scipy
-networkx
 hmmlearn
 joblib
-librosa
-pyo
+mido
+matplotlib
+crepe
+networkx
