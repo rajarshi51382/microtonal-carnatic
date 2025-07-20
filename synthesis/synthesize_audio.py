@@ -74,8 +74,9 @@ def synthesize_swara_sequence(swara_sequence, output_path, duration_per_swara=0.
     audio_data = []
     last_freq = None
 
-    # Additive synthesis parameters (harmonics)
-    harmonics = {1: 1.0, 2: 0.5, 3: 0.25, 4: 0.125}  # Harmonic: Amplitude
+    # Additive synthesis parameters (harmonics) for a shruti box-like timbre
+    # Emphasize fundamental and lower harmonics for a rich, sustained drone
+    harmonics = {1: 1.0, 2: 0.6, 3: 0.4, 4: 0.2, 5: 0.1}  # Harmonic: Amplitude
 
     for i, swara in enumerate(swara_sequence):
         if swara in SWARA_FREQUENCIES:
@@ -107,6 +108,10 @@ def synthesize_swara_sequence(swara_sequence, output_path, duration_per_swara=0.
             # Additive synthesis using the pitch contour
             for h, amp in harmonics.items():
                 wave += amp * np.sin(2 * np.pi * pitch_contour * t * h)
+
+            # Apply a simple linear decay envelope
+            decay_envelope = np.linspace(1.0, 0.0, num_samples)
+            wave *= decay_envelope
 
             audio_data.append(wave)
             last_freq = pitch_contour[-1] # Last frequency of the current contour

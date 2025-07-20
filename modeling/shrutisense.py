@@ -139,6 +139,14 @@ class RagaGrammar:
                 'samvadi': 'Pa',
                 'varjya': [],
                 'pakad': [['Sa', 'Re2', 'Ga2'], ['Pa', 'Dha2', 'Ni2']]
+            },
+            'Mayamalavagowla': {
+                'arohana': ['Sa', 'Re1', 'Ga1', 'Ma1', 'Pa', 'Dha1', 'Ni1', 'Sa_'],
+                'avarohana': ['Sa_', 'Ni1', 'Dha1', 'Pa', 'Ma1', 'Ga1', 'Re1', 'Sa'],
+                'vadi': 'Ma1',
+                'samvadi': 'Sa',
+                'varjya': [],
+                'pakad': [['Sa', 'Re1', 'Ga1'], ['Ma1', 'Pa', 'Dha1']]
             }
         }
 
